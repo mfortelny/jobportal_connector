@@ -141,3 +141,137 @@ Once integration is working:
 2. Test the `/api/scrape` endpoint
 3. Configure job portal credentials
 4. Run end-to-end scraping test 
+
+## 🔧 **Option A: Manual SQL (Recommended - 2 minutes)**
+
+1. **Go to Supabase SQL Editor:**
+   ```
+   https://supabase.com/dashboard/project/cwovxotrzvwutwtlgozb/sql/new
+   ```
+
+2. **Copy and paste this SQL:**
+   ```sql
+   -- Create companies table
+   create table companies (
+     id uuid primary key default gen_random_uuid(),
+     name text not null unique,
+     created_at timestamptz default now()
+   );
+
+   -- Create positions table
+   create table positions (
+     id uuid primary key default gen_random_uuid(),
+     company_id uuid references companies(id) on delete cascade,
+     title text not null,
+     external_job_id text,         -- id z portálu, pro snadné párování
+     created_at timestamptz default now()
+   );
+
+   -- Create candidates table
+   create table candidates (
+     id uuid primary key default gen_random_uuid(),
+     position_id uuid references positions(id) on delete cascade,
+     first_name text, 
+     last_name text,
+     email text, 
+     phone text,
+     phone_sha256 text generated always as (encode(digest(phone, 'sha256'), 'hex')) stored,
+     source_url text,
+     created_at timestamptz default now(),
+     unique(position_id, phone_sha256)          -- technická bariéra proti duplicitám
+   );
+
+   -- Add indexes for better performance
+   create index idx_candidates_position_id on candidates(position_id);
+   create index idx_positions_company_id on positions(company_id);
+   create index idx_candidates_phone_sha256 on candidates(phone_sha256);
+   ```
+
+3. **Click "Run"** to execute the SQL
+
+## 🔧 **Option B: CLI Setup (Advanced)**
+
+If you want to use the CLI properly for future migrations:
+
+### Step 1: Link the project
+You'll need your database password from Supabase Dashboard → Settings → Database
+
+### Step 2: Initialize migration history
+After linking, you can sync the migrations:
+
+```bash
+# This would apply the migration files to Supabase
+supabase db push
+```
+
+## ✅ **Verification**
+
+After running the SQL manually, you can verify it worked:
+
+1. **Check Tables:** Go to https://supabase.com/dashboard/project/cwovxotrzvwutwtlgozb/editor
+2. **You should see:** 3 tables (companies, positions, candidates)
+3. **Test Connection:** Update your `.env` file and run `python test_supabase_connection.py`
+
+## 🎯 **Recommended Approach**
+
+For now, **use Option A (Manual SQL)** because:
+- ✅ It's fastest (2 minutes)
+- ✅ No CLI setup needed
+- ✅ Gets you working immediately
+- ✅ GitHub Actions will handle future migrations
+
+After you run the SQL manually and confirm everything works, we can set up the CLI properly for future migrations.
+
+**Try the manual SQL approach first - let me know if you run into any issues!** 
+
+## ✅ **Verify Tables Were Created**
+
+1. **Go to Table Editor:**
+   ```
+   https://supabase.com/dashboard/project/cwovxotrzvwutwtlgozb/editor
+   ```
+
+2. **You should see 3 new tables:**
+   - `companies`
+   - `positions` 
+   - `candidates`
+
+## 🔧 **Next Steps:**
+
+### **Step 1: Update Your Local Environment**
+Update your `.env` file with the real credentials:
+
+```bash
+SUPABASE_URL=https://cwovxotrzvwutwtlgozb.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_actual_service_role_key_here
+BROWSER_USE_API_KEY=your_browser_use_api_key_here
+```
+
+Get the `SUPABASE_SERVICE_ROLE_KEY` from:
+https://supabase.com/dashboard/project/cwovxotrzvwutwtlgozb/settings/api
+
+### **Step 2: Test the Connection**
+Run the connection test:
+
+```bash
+pip install -r requirements.txt
+python test_supabase_connection.py
+```
+
+### **Step 3: Set GitHub Secrets**
+Add these secrets to your GitHub repository:
+https://github.com/mfortelny/jobportal_connector/settings/secrets/actions
+
+| Secret Name | Value |
+|-------------|-------|
+| `SUPABASE_URL` | `https://cwovxotrzvwutwtlgozb.supabase.co` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Your service role key |
+| `SUPABASE_PROJECT_ID` | `cwovxotrzvwutwtlgozb` |
+
+## 🎯 **What You've Accomplished:**
+- ✅ Database schema created
+- ✅ Tables with proper relationships and constraints
+- ✅ Duplicate prevention via phone number hashing
+- ✅ Ready for the job scraping application
+
+**Next, let's test the connection - update your `.env` file first, then run the test script!** 
