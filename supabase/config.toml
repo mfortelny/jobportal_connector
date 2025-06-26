@@ -17,9 +17,6 @@ max_rows = 1000
 [db]
 # Port to use for the local database URL.
 port = 54322
-# Schemas to expose in your API. Tables, views and stored procedures in this schema will get API endpoints.
-# public and storage are always included.
-schemas = ["public", "storage", "graphql_public"]
 # The database major version to use.
 major_version = 15
 
@@ -72,8 +69,9 @@ enable_confirmations = false
 # default_group_email_provider = "supabase"
 # default_group_sms_provider = "twilio"
 
-[edge_functions]
-enabled = true
+# Edge Functions configuration (commented out for now)
+# [edge_functions]
+# enabled = true
 
 [analytics]
 enabled = false 
