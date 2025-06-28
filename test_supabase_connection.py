@@ -5,8 +5,9 @@ Run: python test_supabase_connection.py
 """
 
 import os
+
 from dotenv import load_dotenv
-from supabase import Client, create_client
+from supabase import create_client, Client
 
 
 def test_connection():
@@ -17,9 +18,7 @@ def test_connection():
     key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
     if not url or not key:
-        print(
-            "❌ Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in .env file"
-        )
+        print("❌ Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in .env file")
         return False
 
     try:

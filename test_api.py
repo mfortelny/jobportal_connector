@@ -1,6 +1,8 @@
-import pytest
 import hashlib
 from unittest.mock import Mock, patch
+
+import pytest
+
 from api.scraper import JobScraper
 
 
