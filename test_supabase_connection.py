@@ -6,7 +6,7 @@ Run: python test_supabase_connection.py
 
 import os
 from dotenv import load_dotenv
-from supabase import create_client, Client
+from supabase import Client, create_client
 
 
 def test_connection():
@@ -17,7 +17,9 @@ def test_connection():
     key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
     if not url or not key:
-        print("❌ Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in .env file")
+        print(
+            "❌ Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in .env file"
+        )
         return False
 
     try:
@@ -54,6 +56,9 @@ if __name__ == "__main__":
         print("\n🎉 Supabase integration is working!")
     else:
         print("\n💡 Next steps:")
-        print("1. Update .env file with correct SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY")
+        print(
+            "1. Update .env file with correct SUPABASE_URL and "
+            "SUPABASE_SERVICE_ROLE_KEY"
+        )
         print("2. Run the SQL schema in Supabase Dashboard SQL Editor")
         print("3. Re-run this test")

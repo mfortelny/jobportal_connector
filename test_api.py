@@ -44,7 +44,9 @@ class TestJobScraper:
             {"phone_sha256": "ghi789"},
         ]
 
-        mock_client.table.return_value.select.return_value.eq.return_value.execute.return_value.data = existing_candidates
+        (
+            mock_client.table.return_value.select.return_value.eq.return_value.execute.return_value.data
+        ) = existing_candidates
 
         scraper = JobScraper("test_url", "test_key", "test_browser_key")
 
