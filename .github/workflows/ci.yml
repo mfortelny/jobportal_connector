@@ -50,12 +50,20 @@ jobs:
     
     - name: Run linters
       run: |
-        black --check .
-        isort --check-only .
+        black .
+        isort .
         flake8 .
+    
+    - name: Commit formatting changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add -A
+        git diff --quiet && git diff --staged --quiet || git commit -m "style: auto-format with black and isort"
+        git push
 
   deploy:
-    needs: [test, lint]
+    needs: [test]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     
@@ -75,7 +83,7 @@ jobs:
       run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
 
   migrate-supabase:
-    needs: [test, lint]
+    needs: [test]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     

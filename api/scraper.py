@@ -1,9 +1,11 @@
 import asyncio
-import httpx
 import hashlib
 import time
-from typing import Dict, List, Any, Optional
-from supabase import create_client, Client
+from typing import Any, Dict, List, Optional
+
+import httpx
+
+from supabase import Client, create_client
 
 
 class JobScraper:
@@ -71,20 +73,13 @@ class JobScraper:
     async def _ensure_company(self, company_name: str) -> str:
         """Create or get company record"""
         # Try to get existing company
-        result = (
-            self.supabase.table("companies")
-            .select("id")
-            .eq("name", company_name)
-            .execute()
-        )
+        result = self.supabase.table("companies").select("id").eq("name", company_name).execute()
 
         if result.data:
             return result.data[0]["id"]
 
         # Create new company
-        result = (
-            self.supabase.table("companies").insert({"name": company_name}).execute()
-        )
+        result = self.supabase.table("companies").insert({"name": company_name}).execute()
         return result.data[0]["id"]
 
     async def _ensure_position(self, company_id: str, position_title: str) -> str:
@@ -117,9 +112,7 @@ class JobScraper:
             .eq("position_id", position_id)
             .execute()
         )
-        return [
-            record["phone_sha256"] for record in result.data if record["phone_sha256"]
-        ]
+        return [record["phone_sha256"] for record in result.data if record["phone_sha256"]]
 
     def _build_scraping_task(self, portal_url: str, position_name: str) -> str:
         """Build the task description for Browser-Use agent"""
@@ -149,9 +142,7 @@ Výstup:
         parsed = urlparse(url)
         return parsed.netloc
 
-    async def _run_browser_use_task(
-        self, task_payload: Dict[str, Any]
-    ) -> List[Dict[str, str]]:
+    async def _run_browser_use_task(self, task_payload: Dict[str, Any]) -> List[Dict[str, str]]:
         """Execute Browser-Use task and poll for results"""
         async with httpx.AsyncClient() as client:
             # Start task
@@ -204,9 +195,7 @@ Výstup:
                 }
 
                 # Try to insert (will fail if duplicate phone_sha256 + position_id)
-                result = (
-                    self.supabase.table("candidates").insert(candidate_record).execute()
-                )
+                result = self.supabase.table("candidates").insert(candidate_record).execute()
                 inserted += 1
 
             except Exception as e:
