@@ -54,8 +54,6 @@ if __name__ == "__main__":
         print("\n🎉 Supabase integration is working!")
     else:
         print("\n💡 Next steps:")
-        print(
-            "1. Update .env file with correct SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY"
-        )
+        print("1. Update .env file with correct SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY")
         print("2. Run the SQL schema in Supabase Dashboard SQL Editor")
         print("3. Re-run this test")

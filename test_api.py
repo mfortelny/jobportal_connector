@@ -21,7 +21,10 @@ class TestJobScraper:
         test_cases = [
             ("https://jobs.example.com/login", "jobs.example.com"),
             ("http://portal.company.cz/dashboard", "portal.company.cz"),
-            ("https://hiring.tech-company.com/positions", "hiring.tech-company.com"),
+            (
+                "https://hiring.tech-company.com/positions",
+                "hiring.tech-company.com",
+            ),
         ]
 
         for url, expected_domain in test_cases:
@@ -41,9 +44,7 @@ class TestJobScraper:
             {"phone_sha256": "ghi789"},
         ]
 
-        mock_client.table.return_value.select.return_value.eq.return_value.execute.return_value.data = (
-            existing_candidates
-        )
+        mock_client.table.return_value.select.return_value.eq.return_value.execute.return_value.data = existing_candidates
 
         scraper = JobScraper("test_url", "test_key", "test_browser_key")
 
