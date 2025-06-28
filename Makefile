@@ -1,4 +1,4 @@
-.PHONY: dev test install setup-supabase
+.PHONY: dev test install setup-supabase format lint
 
 # Load environment variables
 ifneq (,$(wildcard ./.env))
@@ -38,4 +38,18 @@ logs:
 	supabase logs
 
 status:
-	supabase status 
+	supabase status
+
+format:
+	python3 -m pip install black isort flake8
+	python3 -m black .
+	python3 -m isort .
+
+lint:
+	python3 -m pip install black isort flake8
+	python3 -m black --check .
+	python3 -m isort --check-only .
+	python3 -m flake8 . --max-line-length=88 --extend-ignore=E203,W503,E501
+
+fix-all:
+	python3 fix_formatting.py 

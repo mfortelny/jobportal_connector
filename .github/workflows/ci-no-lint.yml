@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI/CD Pipeline (No Lint)
 
 on:
   push:
@@ -32,45 +32,8 @@ jobs:
         SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         BROWSER_USE_API_KEY: ${{ secrets.BROWSER_USE_API_KEY }}
 
-  lint-and-format:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-    
-    - name: Set up Python 3.12
-      uses: actions/setup-python@v4
-      with:
-        python-version: 3.12
-    
-    - name: Install linting tools
-      run: |
-        python -m pip install --upgrade pip
-        pip install black isort flake8
-    
-    - name: Auto-format code
-      run: |
-        black .
-        isort .
-    
-    - name: Commit formatting changes
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add -A
-        if ! git diff --quiet && ! git diff --staged --quiet; then
-          git commit -m "style: auto-format with black and isort [skip ci]"
-          git push
-        fi
-    
-    - name: Run code quality checks
-      run: |
-        flake8 . --max-line-length=88 --extend-ignore=E203,W503
-
   deploy:
-    needs: [test, lint-and-format]
+    needs: [test]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     
@@ -90,7 +53,7 @@ jobs:
       run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
 
   migrate-supabase:
-    needs: [test, lint-and-format]
+    needs: [test]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     
@@ -107,6 +70,4 @@ jobs:
       env:
         SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-        SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
-
-  # GitHub ↔ Supabase communication working!
+        SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }} 

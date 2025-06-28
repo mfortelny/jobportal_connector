@@ -31,14 +31,14 @@ def test_connection():
         print(f"📡 URL: {url}")
 
         # Try to query public schema
-        result = supabase.rpc("version").execute()
+        supabase.rpc("version").execute()
         print("✅ Connection successful!")
 
         # Check if our tables exist
         tables_to_check = ["companies", "positions", "candidates"]
         for table in tables_to_check:
             try:
-                result = supabase.table(table).select("*").limit(0).execute()
+                supabase.table(table).select("*").limit(0).execute()
                 print(f"✅ Table '{table}' exists and is accessible")
             except Exception as e:
                 print(f"⚠️  Table '{table}' not found or not accessible: {e}")
@@ -56,6 +56,9 @@ if __name__ == "__main__":
         print("\n🎉 Supabase integration is working!")
     else:
         print("\n💡 Next steps:")
-        print("1. Update .env file with correct SUPABASE_URL and " "SUPABASE_SERVICE_ROLE_KEY")
+        print(
+            "1. Update .env file with correct SUPABASE_URL and "
+            "SUPABASE_SERVICE_ROLE_KEY"
+        )
         print("2. Run the SQL schema in Supabase Dashboard SQL Editor")
         print("3. Re-run this test")
