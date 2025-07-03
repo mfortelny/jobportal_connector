@@ -1,11 +1,12 @@
 import os
 import time
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from .scraper import JobScraper
+from .webhooks.handlers import handle_github_webhook, handle_vercel_webhook
 
 app = FastAPI(title="Job Portal Connector", version="1.0.0")
 
@@ -79,11 +80,28 @@ async def health_check():
     return {"status": "healthy", "service": "job-portal-connector"}
 
 
+@app.post("/webhooks/github")
+async def github_webhook_endpoint(request: Request):
+    """GitHub webhook endpoint"""
+    return await handle_github_webhook(request)
+
+
+@app.post("/webhooks/vercel")
+async def vercel_webhook_endpoint(request: Request):
+    """Vercel webhook endpoint"""
+    return await handle_vercel_webhook(request)
+
+
 @app.get("/")
 async def root():
     """Root endpoint with API information"""
     return {
         "message": "Job Portal Connector API",
         "version": "1.0.0",
-        "endpoints": {"scrape": "/api/scrape", "health": "/api/health"},
+        "endpoints": {
+            "scrape": "/api/scrape", 
+            "health": "/api/health",
+            "github_webhook": "/webhooks/github",
+            "vercel_webhook": "/webhooks/vercel"
+        },
     }
