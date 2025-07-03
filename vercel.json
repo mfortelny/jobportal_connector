@@ -9,9 +9,5 @@
       "source": "/(.*)",
       "destination": "/api/index.py"
     }
-  ],
-  "env": {
-    "GITHUB_WEBHOOK_SECRET": "@github_webhook_secret",
-    "VERCEL_WEBHOOK_SECRET": "@vercel_webhook_secret"
-  }
+  ]
 }
