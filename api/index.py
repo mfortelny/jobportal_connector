@@ -4,6 +4,7 @@ import time
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from fastapi.responses import JSONResponse
 
 from .scraper import JobScraper
 from .webhooks.handlers import handle_github_webhook, handle_vercel_webhook
@@ -18,6 +19,25 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Check for environment variables
+supabase_url = os.getenv("SUPABASE_URL")
+supabase_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+
+# Initialize scraper only if environment variables are available
+scraper = None
+if supabase_url and supabase_key:
+    try:
+        scraper = JobScraper(
+            supabase_url=supabase_url,
+            supabase_key=supabase_key,
+            browser_use_api_key=os.getenv("BROWSER_USE_API_KEY", "")
+        )
+    except Exception as e:
+        print(f"Warning: Could not initialize scraper: {e}")
+        scraper = None
+else:
+    print("Warning: Supabase environment variables not configured. Scraper functionality disabled.")
 
 
 class ScrapeRequest(BaseModel):
@@ -44,12 +64,11 @@ async def scrape_job_portal(request: ScrapeRequest):
     start_time = time.time()
 
     try:
-        # Initialize scraper
-        scraper = JobScraper(
-            supabase_url=os.getenv("SUPABASE_URL"),
-            supabase_key=os.getenv("SUPABASE_SERVICE_ROLE_KEY"),
-            browser_use_api_key=os.getenv("BROWSER_USE_API_KEY"),
-        )
+        if not scraper:
+            raise HTTPException(
+                status_code=503, 
+                detail="Scraper not available. Please configure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables."
+            )
 
         # Run scraping process
         result = await scraper.scrape_candidates(
@@ -83,25 +102,47 @@ async def health_check():
 @app.post("/webhooks/github")
 async def github_webhook_endpoint(request: Request):
     """GitHub webhook endpoint"""
-    return await handle_github_webhook(request)
+    try:
+        result = await handle_github_webhook(request)
+        return JSONResponse(content=result, status_code=200)
+    except HTTPException as e:
+        return JSONResponse(content={"error": e.detail}, status_code=e.status_code)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
 @app.post("/webhooks/vercel")
 async def vercel_webhook_endpoint(request: Request):
     """Vercel webhook endpoint"""
-    return await handle_vercel_webhook(request)
+    try:
+        result = await handle_vercel_webhook(request)
+        return JSONResponse(content=result, status_code=200)
+    except HTTPException as e:
+        return JSONResponse(content={"error": e.detail}, status_code=e.status_code)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
 @app.get("/")
 async def root():
-    """Root endpoint with API information"""
+    """Root endpoint"""
+    env_status = {
+        "supabase_configured": bool(supabase_url and supabase_key),
+        "scraper_available": scraper is not None,
+        "github_webhook_secret": bool(os.getenv("GITHUB_WEBHOOK_SECRET")),
+        "vercel_webhook_secret": bool(os.getenv("VERCEL_WEBHOOK_SECRET"))
+    }
+    
     return {
         "message": "Job Portal Connector API",
-        "version": "1.0.0",
-        "endpoints": {
-            "scrape": "/api/scrape", 
-            "health": "/api/health",
-            "github_webhook": "/webhooks/github",
-            "vercel_webhook": "/webhooks/vercel"
-        },
+        "status": "running",
+        "environment": env_status
     }
+
+# Handle all other routes for SPA compatibility
+@app.get("/{path:path}")
+async def catch_all(path: str):
+    """Catch-all for undefined routes"""
+    return {"message": f"Route /{path} not found", "available_routes": [
+        "/", "/api/health", "/webhooks/github", "/webhooks/vercel", "/api/scrape"
+    ]}

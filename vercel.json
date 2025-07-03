@@ -11,9 +11,6 @@
     }
   ],
   "env": {
-    "SUPABASE_URL": "@supabase_url",
-    "SUPABASE_SERVICE_ROLE_KEY": "@supabase_service_role_key",
-    "BROWSER_USE_API_KEY": "@browser_use_api_key",
     "GITHUB_WEBHOOK_SECRET": "@github_webhook_secret",
     "VERCEL_WEBHOOK_SECRET": "@vercel_webhook_secret"
   }

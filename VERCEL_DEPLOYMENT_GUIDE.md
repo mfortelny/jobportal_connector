@@ -30,7 +30,7 @@ When you see the configuration screen, here are the **default settings** to use:
 
 **Advanced Settings (Optional):**
 - **Node.js Version**: (leave as default)
-- **Environment Variables**: (skip for now, add later)
+- **Environment Variables**: Skip for now - add after deployment
 
 ### 4. Deploy with Default Settings
 1. Click the blue **"Deploy"** button
@@ -60,7 +60,28 @@ For your Python FastAPI project, Vercel automatically:
 - ✅ Sets up the proper routing via `vercel.json`
 - ✅ Configures serverless functions
 
-## After Deployment
+## After Deployment - Environment Variables Setup
+
+### Required Environment Variables
+Since you're using Supabase's native GitHub integration, add these to Vercel:
+
+Go to: **Project → Settings → Environment Variables**
+
+**Essential Variables:**
+1. `SUPABASE_URL` → Your Supabase project URL (e.g., `https://abc123.supabase.co`)
+2. `SUPABASE_SERVICE_ROLE_KEY` → Your Supabase service role key
+
+**Optional Webhook Secrets (for security):**
+3. `GITHUB_WEBHOOK_SECRET` → Random string for GitHub webhook verification
+4. `VERCEL_WEBHOOK_SECRET` → Random string for Vercel webhook verification
+
+### How to Get Supabase Values:
+1. Go to your Supabase dashboard
+2. Project Settings → API
+3. Copy "Project URL" → Use for `SUPABASE_URL`
+4. Copy "service_role" key → Use for `SUPABASE_SERVICE_ROLE_KEY`
+
+**Important:** After adding environment variables, **redeploy** your project to apply them.
 
 ### Automatic GitHub Integration
 Vercel automatically:
@@ -88,13 +109,18 @@ Vercel automatically:
 2. Check `vercel.json` configuration
 3. Look for import errors in logs
 
-## Environment Variables (Add After Deployment)
+### Environment Variable Errors
+If you see "SUPABASE_URL references Secret" error:
+1. ✅ **Fixed**: Updated `vercel.json` to remove secret references
+2. Add environment variables manually in Vercel dashboard
+3. Redeploy after adding variables
 
-Go to your project → Settings → Environment Variables and add:
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `BROWSER_USE_API_KEY`
-- `GITHUB_WEBHOOK_SECRET`
-- `VERCEL_WEBHOOK_SECRET`
+## Quick Environment Setup Commands
 
-Then redeploy to apply the environment variables.
+After deployment, set these in Vercel dashboard:
+```
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
+GITHUB_WEBHOOK_SECRET=your-random-github-secret
+VERCEL_WEBHOOK_SECRET=your-random-vercel-secret
+```
